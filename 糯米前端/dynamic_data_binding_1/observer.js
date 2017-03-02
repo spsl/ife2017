@@ -1,11 +1,17 @@
 (function(global) {
 
 	function Observer(bindData) {
-		const value = {};
+		
 		this.data = {};
-		for(let attr in bindData) {
-			value[attr] = bindData[attr];
-			Object.defineProperty(this.data, attr, {
+		this.convert(bindData, this.data);
+	}
+
+	Observer.prototype.convert = function(from, to) {
+		const value = {};
+
+		for(let attr in from) {
+			value[attr] = from[attr];
+			Object.defineProperty(to, attr, {
 				get : function() {
 					console.log('你访问了 ' + attr);
 					return value[attr];
@@ -16,7 +22,6 @@
 				}
 			});
 		}
-
 	}
 	window.Observer = Observer;
 }(window));
