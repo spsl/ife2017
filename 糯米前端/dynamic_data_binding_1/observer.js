@@ -1,12 +1,8 @@
 (function( global ) {
-
-	
-
 	function Observer( data ) {
 		if( !data || typeof data !== 'object' ) {
 			return;
 		} 
-
 		this.data = data;
 		this.observerObject( data );
 	}
