@@ -9,16 +9,20 @@
 		this.data = data;
 		this.observerObject( data );
 
+		this.initEventBus( selfEventName, parentEventBus );
+	}
+
+	Observer.prototype.initEventBus = function( selfEventName, parentEventBus ) {
 		if ( parentEventBus ) {
 			this.eventBus = parentEventBus.getChild( selfEventName );
+			if ( selfEventName ) {
+				this.eventBus.eventName = selfEventName;
+				parentEventBus.setChild( this.eventBus );
+			}
 		}
 
 		if ( !this.eventBus ) {
 			this.eventBus = new EventBus( selfEventName, parentEventBus );
-		}
-		
-		if ( parentEventBus && selfEventName ) {
-			parentEventBus.setChild( selfEventName, this.eventBus );
 		}
 	}
 
@@ -77,10 +81,24 @@
 		if ( !eventName || !callback || typeof callback !== 'function' ) {
 			return;
 		} 
-		if ( this.bus[eventName] ) {
-			this.bus[eventName].push( callback );
+		const eventPaths = eventName.split('.');
+		var selfName = eventPaths[0];
+		var childEventName = eventPaths[1];
+		if ( childEventName ) {
+			
+			let childEventBus = this.child[childEventName];
+			if ( !childEventBus ) {
+				this.eventName = selfName;
+				childEventBus = new EventBus( childEventName, this );
+				this.setChild( childEventBus );
+			}
+			childEventBus.on(eventName.replace(selfName + '.', ''), callback );
 		} else {
-			this.bus[eventName] = [callback];
+			if ( this.bus[eventName] ) {
+				this.bus[eventName].push( callback );
+			} else {
+				this.bus[eventName] = [callback];
+			}
 		}
 	}
 
@@ -98,6 +116,7 @@
 		}
 	}
 
+
 	EventBus.prototype.setChild = function( childEventName, childEventBus ) {
 		this.child[childEventName] = childEventBus;
 	}
@@ -105,6 +124,7 @@
 	EventBus.prototype.getChild = function( childEventName ) {
 		return this.child[childEventName];
 	}
+
 
 
 	global.Observer = Observer;
