@@ -1,27 +1,75 @@
-(function(global) {
+(function( global ) {
 
-	function Observer(bindData) {
-		
-		this.data = {};
-		this.convert(bindData, this.data);
+	
+
+	function Observer( data ) {
+		if( !data || typeof data !== 'object' ) {
+			return;
+		} 
+
+		this.data = data;
+		this.observerObject( data );
 	}
 
-	Observer.prototype.convert = function(from, to) {
-		const value = {};
+	Observer.prototype.observerObject = function( obj ) {
+		const self = this;
+		Object.keys( obj ).forEach(function( attr ) {
+			let val = obj[attr];
 
-		for(let attr in from) {
-			value[attr] = from[attr];
-			Object.defineProperty(to, attr, {
-				get : function() {
-					console.log('你访问了 ' + attr);
-					return value[attr];
-				},
-				set: function(newValue) {
-					console.log('你设置了' + attr + '，新的值为' + newValue);
-					value[attr] = newValue;
+			if ( typeof val === 'object' ) {
+				new Observer( val );
+			}
+			self.convert( attr, val );
+		});
+	}
+
+	Observer.prototype.convert = function( attr, value ) {
+
+		const self = this;
+		Object.defineProperty(this.data, attr, {
+			enumerable: true,
+			configurable: true,
+			get: function() {
+				console.log('get ' + attr + ' : ' + value);
+				return value;
+			},
+			set: function( newVal ) {
+				console.log('set ' + attr + ' : ' + newVal );
+				value = newVal;
+				if ( typeof newVal === 'object' ) {
+					new Observer( value );
 				}
-			});
-		}
+			}
+		});
 	}
-	window.Observer = Observer;
+
+
+
+
+
+	global.Observer = Observer;
+	
 }(window));
+
+
+const a = {
+	id: 1,
+	age: 12,
+	name: {
+		first: 'sai',
+		last: 'sun'
+	}
+}
+
+
+const b = new Observer(a);
+
+
+
+
+
+
+
+
+
+

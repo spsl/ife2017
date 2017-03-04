@@ -1,43 +1,82 @@
-(function(global) {
+(function( global ) {
 
-	function Observer(bindData) {
-		
-		this.data = {};
-		this.convert(bindData, this.data);
+	
+
+	function Observer( data ) {
+		if( !data || typeof data !== 'object' ) {
+			return;
+		} 
+
+		this.data = data;
+		this.observerObject( data );
 	}
 
+	Observer.prototype.observerObject = function( obj ) {
 
-
-	Observer.prototype.convert = function( from, to ) {
-		const value = {};
+		if ( !obj || typeof obj !== 'object' ) {
+			return;
+		}
 		const self = this;
-		for(let attr in from) {
-			if ( from.hasOwnProperty(attr) ) {
-				if (typeof from[attr] === 'object' ) {
-					to[attr] = {}
-					self.convert( from[attr], to[attr] );
-				} else {
-					value[attr] = from[attr];
-					Object.defineProperty( to, attr, {
-						get : function() {
-							console.log('你访问了 ' + attr);
-							return value[attr];
-						},
-						set: function( newValue ) {
-							if (typeof newValue === 'object') {
-								value[attr] = {};
-								self.convert( newValue, to[attr] );
-							} else {
-								console.log('你设置了' + attr + '，新的值为' + newValue);
-								value[attr] = newValue;
-							}
-						}
-					});
+		Object.keys( obj ).forEach(function( attr ) {
+			let val = obj[attr];
+
+			if ( typeof val === 'object' ) {
+				new Observer( val );
+			}
+			self.convert( attr, val );
+		});
+	}
+
+	Observer.prototype.convert = function( attr, value ) {
+
+		const self = this;
+		Object.defineProperty(this.data, attr, {
+			enumerable: true,
+			configurable: true,
+			get: function() {
+				console.log('get ' + attr + ' : ' + value);
+				return value;
+			},
+			set: function( newVal ) {
+				console.log('set ' + attr + ' : ' + newVal );
+				value = newVal;
+				if ( typeof newVal === 'object' ) {
+					new Observer( value );
 				}
 			}
-				
-			
-		}
+		})
+
+		
+
 	}
-	window.Observer = Observer;
+
+
+
+
+
+	global.Observer = Observer;
+	
 }(window));
+
+
+const a = {
+	id: 1,
+	age: 12,
+	name: {
+		first: 'sai',
+		last: 'sun'
+	}
+}
+
+
+const b = new Observer(a);
+
+
+
+
+
+
+
+
+
+
