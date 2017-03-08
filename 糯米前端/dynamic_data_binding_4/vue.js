@@ -2,41 +2,26 @@
 
 
 
-function Vue() {
+function Vue(data) {
 
-
-
+    this.element = document.querySelector(data.el);
+    this.observer = new Observer(data.data);
+    this.template = this.element.innerHTML;
+    this.render();
 }
 
 
 
-function render(template, context) {
 
 
 
-}
 
 
-var template = `
-	<span>{{id}}</span>
-	<span> {{name.first}}</span>
-	<span> {{name.last}} </span>
-`;
 
 
-var context = {
-	id: 123,
-	name: {
-		first: 'sun',
-		last: 'sai'
-	}
-};
 
 
-easyTpl(template, context);
-
-
-function getValue(context, key) {
+ Vue.prototype.getValue = function(context, key) {
 	var events = key.split('.');
     var i = 1;
     var dat = context[events[0]];
@@ -47,16 +32,44 @@ function getValue(context, key) {
     return dat;
 }
 
-function easyTpl(tpl, context) {
-    var reg = /{{([a-zA-Z_$][a-zA-Z_$0-9\.]*)}}/g;    
-    return tpl.replace(reg, function (raw, key, offset, str) {
-        console.log('-----------');
-        console.log(raw);
-        console.log(key);
-        console.log(offset);
-        console.log(str);
-
-        return getValue(context, key);
-
+ Vue.prototype.parseTemplate = function(tpl) {
+    var result = {};
+    var reg = /{{([a-zA-Z_$][a-zA-Z_$0-9\.]*)}}/g;
+    tpl.replace(reg, function (raw, key, offset, str) {
+        result[raw] = {
+            key: key
+        };
     });
+    return result;
 }
+
+Vue.prototype.render = function() {
+    var template = this.template;
+    var context = this.observer.data;
+    var exp = this.parseTemplate(template);
+    var self = this;
+    Object.keys( exp ).forEach(function(attr) {
+        console.log(attr);
+        var item = exp[attr];
+        console.log(item);
+        var value = self.getValue( context, item.key);
+        item.value = value;
+        template = template.replace(attr, value);
+    });
+    this.element.innerHTML = template;
+}
+
+
+var context = {
+    id: 123,
+    user: {
+        name: 'sun sai',
+        age: 12
+    }
+};
+
+
+var vue = new Vue({
+    el: '#app',
+    data: context
+})

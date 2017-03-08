@@ -1,6 +1,6 @@
 
 (function( global ) {
-    function Observer( data, parentDep, attr ) {
+    function Observer( data, parentDep) {
 
         if( !data || typeof data !== 'object' ) {
             return;
@@ -12,10 +12,10 @@
 
     Observer.prototype.observerObject = function( obj ) {
         const self = this;
-        Object.keys( obj ).forEach(function( attr ) {
+        Object.keys( obj ).forEach( function( attr ) {
             var val = obj[attr];
-            var dep = new Dep( self.parent, attr );
-            new Observer( val, dep, attr);
+            var dep = new Dep( self.parent );
+            new Observer( val, dep);
             self.convert( attr, val, dep );
         });
     };
@@ -37,11 +37,16 @@
             },
             set: function( newVal ) {
                 console.log('set ' + attr + ' : ' + newVal );
+
+                if (value === newVal) {
+                    return;
+                }
+
                 value = newVal;
                 if ( typeof newVal === 'object' ) {
-                    new Observer( value, dep, attr);
+                    new Observer( value, dep );
                 }
-                dep.notify( newVal, attr );
+                dep.notify( newVal );
             }
         });
     };
@@ -52,37 +57,38 @@
     };
 
 
-    function Dep(parent, attr) {
+    function Dep( parent ) {
         this.parent = parent;
         this.watchers = [];
-        this.attr = attr;
     }
 
-    Dep.prototype.notify = function(newVal, attr) {
-        this.watchers.forEach(function(watcher) {
-            watcher.update(newVal);
+    Dep.prototype.notify = function( newVal ) {
+        this.watchers.forEach(function( watcher ) {
+            watcher.update( newVal );
         });
-        console.log(this);
-        console.log(attr);
-        if (this.parent) {
-            this.parent.notify(newVal);
+        if ( this.parent ) {
+            this.parent.notify( newVal );
         }
     };
 
     Dep.prototype.addWatchers = function() {
-        this.watchers.push(Dep.target);
+        this.watchers.push( Dep.target );
     };
 
     function Watcher(ob, event, cb, context) {
+
+        if (typeof cb !== 'function') {
+            return;
+        }
         this.cb = cb;
         this.ob = ob;
         this.context = context;
         this.calculateDep(event);
     }
 
-    Watcher.prototype.register = function(data, attr) {
+    Watcher.prototype.register = function(deepValue, attr) {
         Dep.target = this;
-        data[attr];
+        deepValue[attr];
         Dep.target = undefined;
     }
 
@@ -93,25 +99,22 @@
             this.register( this.ob.data, event);
         } else {
             var i = 1;
-            var dat = this.ob.data[events[0]];
-            while(dat && i < events.length - 1) {
-                dat = dat[events[i]];
-                i++;
+            var deepValue = this.ob.data[events[0]];
+            while(deepValue && i < events.length - 1) {
+                deepValue = deepValue[events[i++]];
             }
-            this.register( dat, events[i]);
+            this.register( deepValue, events[i]);
         }
     };
 
 
     Watcher.prototype.update = function(newVal) {
-        if (this.cb) {
+        if ( this.cb ) {
             this.cb.call(this.context, newVal);
         }
     }
 
     global.Observer = Observer;
-
-
 
 }(window));
 
