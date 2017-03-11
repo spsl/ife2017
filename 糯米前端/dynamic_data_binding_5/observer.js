@@ -36,10 +36,11 @@
                 return value;
             },
             set: function( newVal ) {
+                // 目前这里存在一个bug, 就是如果设置的是新的对象, 那么这之前的老的对象上面的事件会丢失
                 console.log('set ' + attr + ' : ' + newVal );
                 value = newVal;
                 if ( typeof newVal === 'object' ) {
-                    new Observer( value, dep, attr);
+                    var childOb = new Observer( value, dep, attr);
                 }
                 dep.notify( newVal, attr );
             }
