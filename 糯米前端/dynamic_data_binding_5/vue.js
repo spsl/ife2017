@@ -77,7 +77,7 @@
         Object.keys( self.depAttrs ).forEach(function(attr) {
             var item = self.depAttrs[attr];
             var value = self.getValue( self.vue.data, item.key );
-            templateNodeValue = templateNodeValue.replace(attr, value);
+            templateNodeValue = templateNodeValue.split(attr).join(value);
         });
         this.element.nodeValue = templateNodeValue;
     }
@@ -136,7 +136,8 @@ var context = {
     id: 123,
     user: {
         name: 'wo爱吃夹心饼干',
-        age: 123
+        age: 123,
+        sex: '男'
     }
 };
 

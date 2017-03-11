@@ -63,8 +63,7 @@
         this.watchers.forEach(function(watcher) {
             watcher.update(newVal);
         });
-        console.log(this);
-        console.log(attr);
+    
         if (this.parent) {
             this.parent.notify(newVal);
         }
